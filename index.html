@@ -19,10 +19,64 @@ window.onload=function(){
 	var theme={
 		'bg':'#fff',
 		'fg':'#1a1a1c',
-		'cs':'#1a1a1c'
+		'cs':'#1a1a1c',
+		'kw':'#c66'
 	};
+	var keywords=[
+		'break',
+		'case',
+		'catch',
+		'class',
+		'const',
+		'continue',
+		'debugger',
+		'default',
+		'delete',
+		'do',
+		'else',
+		'export',
+		'extends',
+		'finally',
+		'for',
+		'function',
+		'if',
+		'import',
+		'in',
+		'instanceof',
+		'new',
+		'return',
+		'super',
+		'switch',
+		'this',
+		'throw',
+		'try',
+		'typeof',
+		'var',
+		'void',
+		'while',
+		'with',
+		'yield'
+	];
 	c.width=window.innerWidth;
 	c.height=window.innerHeight;
+	//https://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
+	function save(){
+		var a=document.createElement('a');
+		a.setAttribute('href','data:text/plain;charset=utf-8,'+encodeURIComponent(line));
+		a.setAttribute('download','Untitled.txt');
+		a.style.display='none';
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+	}
+	//https://stackoverflow.com/questions/19038919/is-it-possible-to-upload-a-text-file-to-input-in-html-js
+	document.getElementById('load').onchange=function(e){
+		var reader=new FileReader();
+		reader.onload=function(evt){
+			line=evt.target.result;
+		};
+		reader.readAsText(document.getElementById('load').files[0]);
+	}
 	window.onresize=function(){
 		c.width=window.innerWidth;
 		c.height=window.innerHeight;
@@ -98,16 +152,24 @@ window.onload=function(){
 				cp=Math.min(cp+1,line.length);
 				break;
 			default:
-				if(shift){
-					if(48<=e.which&&e.which<=57){
-						ins(')!@#$%^&*('[e.which-48]);
-					}
-					else if(65<=e.which&&e.which<=90){
-						ins(String.fromCharCode(e.which).toUpperCase());
-					}
+				if(alt&&e.which===79){
+					document.getElementById('load').click();
+				}
+				else if(alt&&e.which===83){
+					save();
 				}
 				else{
-					ins(String.fromCharCode(e.which).toLowerCase());
+					if(shift){
+						if(48<=e.which&&e.which<=57){
+							ins(')!@#$%^&*('[e.which-48]);
+						}
+						else if(65<=e.which&&e.which<=90){
+							ins(String.fromCharCode(e.which).toUpperCase());
+						}
+					}
+					else{
+						ins(String.fromCharCode(e.which).toLowerCase());
+					}
 				}
 				break;
 		}
@@ -144,7 +206,18 @@ window.onload=function(){
 			cc.fillText(i/fs+1,tw,i);
 		}
 		line.split('\n').forEach(function(row){
-			cc.fillText(row,of,j*fs);
+			outer:for(var i=0;i<row.length;i++){
+				for(var kw of keywords){
+					if(kw===row.substring(i,i+kw.length)){
+						cc.fillStyle=theme.kw;
+						cc.fillText(kw,i*tw+of,j*fs)
+						cc.fillStyle=theme.fg;
+						i+=kw.length;
+						continue outer;
+					}
+				}
+				cc.fillText(row[i],i*tw+of,j*fs);
+			}
 			j++;
 		});
 		var cx=0,cy=0;
@@ -167,5 +240,6 @@ window.onload=function(){
 	</head>
 	<body>
 		<canvas id='canvas'></canvas>
+		<input type='file' id='load' hidden />
 	</body>
 </html>
