@@ -209,7 +209,7 @@ window.onload=function(){
 		line.split('\n').forEach(function(row){
 			outer:for(var i=0;i<row.length;i++){
 				for(var kw of keywords){
-					if(kw===row.substring(i,i+kw.length)){
+					if(kw===row.substring(i,i+kw.length) && (i+kw.length>=row.length||row[i+kw.length]==' ')){
 						cc.fillStyle=theme.kw;
 						cc.fillText(kw,i*tw+of,j*fs)
 						cc.fillStyle=theme.fg;
