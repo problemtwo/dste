@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset='utf-8' />
+		<style type='text/css'>
+			html,body{margin:0;padding:0;width:100%;height:100%;}
+		</style>
+		<script type='text/javascript'>
+window.onload=function(){
+	var line='';
+	var c=document.getElementById('canvas');
+	var cc=c.getContext('2d');
+	var cp=0;
+	var ts=2;
+	var shift=false;
+	var ctrl=false;
+	var alt=false;
+	var cmd=false;
+	var theme={
+		'bg':'#fff',
+		'fg':'#1a1a1c',
+		'cs':'#1a1a1c'
+	};
+	c.width=window.innerWidth;
+	c.height=window.innerHeight;
+	window.onresize=function(){
+		c.width=window.innerWidth;
+		c.height=window.innerHeight;
+	}
+	window.onkeydown=function(e){
+		e.preventDefault();
+		switch(e.which){
+			case 8:
+				line=line.substring(0,cp-1)+line.substring(cp);
+				cp=Math.max(cp-1,0);
+				break;
+			case 9:
+				for(var i=0;i<ts;i++){ins(' ');}
+				break;
+			case 13:
+				ins('\n');
+				break;
+			case 16:
+				shift=true;
+				break;
+			case 17:
+				ctrl=true;
+				break;
+			case 18:
+				alt=true;
+				break;
+			case 91:
+				cmd=true;
+				break;
+			case 192:
+				ins(shift?'~':'`');
+				break;
+			case 189:
+				ins(shift?'_':'-');
+				break;
+			case 187:
+				ins(shift?'+':'=');
+				break;
+			case 219:
+				ins(shift?'{':'[');
+				break;
+			case 221:
+				ins(shift?'}':']');
+				break;
+			case 220:
+				ins(shift?'|':'\\');
+				break;
+			case 186:
+				ins(shift?':':';');
+				break;
+			case 222:
+				ins(shift?'\"':'\'');
+				break;
+			case 188:
+				ins(shift?'<':',');
+				break;
+			case 190:
+				ins(shift?'>':'.');
+				break;
+			case 191:
+				ins(shift?'?':'/');
+				break;
+			case 37:
+				cp=Math.max(cp-1,0);
+				break;
+			case 38:
+				cp=Math.max(cp-1,0);
+				break;
+			case 39:
+				cp=Math.min(cp+1,line.length);
+				break;
+			case 40:
+				cp=Math.min(cp+1,line.length);
+				break;
+			default:
+				if(shift){
+					if(48<=e.which&&e.which<=57){
+						ins(')!@#$%^&*('[e.which-48]);
+					}
+					else if(65<=e.which&&e.which<=90){
+						ins(String.fromCharCode(e.which).toUpperCase());
+					}
+				}
+				else{
+					ins(String.fromCharCode(e.which).toLowerCase());
+				}
+				break;
+		}
+	};
+	window.onkeyup=function(e){
+		switch(e.which){
+			case 16:
+				shift=false;
+				break;
+			case 17:
+				ctrl=false;
+				break;
+			case 18:
+				alt=false;
+				break;
+			case 91:
+				cmd=false;
+				break;
+			default:
+				break;
+		}
+	};
+	setInterval(function(){
+		cc.fillStyle=theme.bg;
+		cc.fillRect(0,0,c.width,c.height);
+		cc.fillStyle=theme.fg;
+		var fs=12;
+		cc.font=fs+'px Anonymous Pro';
+		cc.textBaseline='top';
+		var tw=cc.measureText('a').width;
+		var of=tw*4;
+		var j=0;
+		for(var i=0;i<c.height;i+=fs){
+			cc.fillText(i/fs+1,tw,i);
+		}
+		line.split('\n').forEach(function(row){
+			cc.fillText(row,of,j*fs);
+			j++;
+		});
+		var cx=0,cy=0;
+		for(var i=0;i<cp;i++){
+			cx++;
+			if(line[i]==='\n'){
+				cy++;
+				cx=0;
+			}
+		}
+		cc.fillStyle=theme.cs;
+		cc.fillRect(cx*tw+of,cy*fs,3,fs)
+	});
+	function ins(c){
+		line=line.substring(0,cp)+c+line.substring(cp);
+		cp++;
+	}
+};
+		</script>
+	</head>
+	<body>
+		<canvas id='canvas'></canvas>
+	</body>
+</html>
