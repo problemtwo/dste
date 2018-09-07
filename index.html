@@ -24,7 +24,8 @@ window.onload=function(){
 		'fg':'#1a1a1c',
 		'cs':'#1a1a1c',
 		'kw':'#c66',
-		'sb':'#ddd'
+		'sb':'#ddd',
+		'st':'#ffffe0'
 	};
 	var keywords=[
 		'break',
@@ -268,9 +269,15 @@ window.onload=function(){
 				cc.fillRect(cx*tw+of,cy*fs,tw,fs)
 			}
 		}
-		cc.fillStyle=theme.fg;
+		var in_str=false;
 		line.split('\n').forEach(function(row){
 			outer:for(var i=0;i<row.length;i++){
+				if(in_str){
+					cc.fillStyle=theme.st;
+				}
+				else{
+					cc.fillStyle=theme.fg;
+				}
 				for(var kw of keywords){
 					if(kw===row.substring(i,i+kw.length) && (i+kw.length>=row.length||!'abcdefghijklmnopqrstuvwxyz1234567890_'.includes(row[i+kw.length].toLowerCase()))){
 						cc.fillStyle=theme.kw;
@@ -280,6 +287,7 @@ window.onload=function(){
 						continue outer;
 					}
 				}
+				if('`"\''.includes(row[i])){in_str=!in_str;}
 				cc.fillText(row[i],i*tw+of,j*fs);
 			}
 			j++;
