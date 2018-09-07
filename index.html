@@ -12,7 +12,9 @@ window.onload=function(){
 	var c=document.getElementById('canvas');
 	var cc=c.getContext('2d');
 	var cp=0;
+	var sp=-1;
 	var ts=2;
+	var rtss=false;
 	var shift=false;
 	var ctrl=false;
 	var alt=false;
@@ -21,7 +23,8 @@ window.onload=function(){
 		'bg':'#fff',
 		'fg':'#1a1a1c',
 		'cs':'#1a1a1c',
-		'kw':'#c66'
+		'kw':'#c66',
+		'sb':'#ddd'
 	};
 	var keywords=[
 		'break',
@@ -71,6 +74,24 @@ window.onload=function(){
 		a.click();
 		document.body.removeChild(a);
 	}
+	//https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
+	function copy(st){
+		var t=document.createElement('textarea');
+		t.value=st;
+		document.body.appendChild(t);
+		t.select();
+		document.execCommand('copy');
+		document.body.removeChild(t);
+	}
+	//https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Interact_with_the_clipboard
+	function paste(){
+		var t=document.createElement('textarea');
+		document.body.appendChild(t);
+		t.select();
+		document.execCommand('paste');
+		document.body.removeChild(t);
+		ins(t.value);
+	}
 	//https://stackoverflow.com/questions/19038919/is-it-possible-to-upload-a-text-file-to-input-in-html-js
 	document.getElementById('load').onchange=function(e){
 		var reader=new FileReader();
@@ -91,13 +112,28 @@ window.onload=function(){
 				cp=Math.max(cp-1,0);
 				break;
 			case 9:
-				for(var i=0;i<ts;i++){ins(' ');}
+				if(shift){
+					// var words=line.split(' ');
+					// if(words.length>0){
+					// 	var w=words[words.length];
+					// 	for(var i=0;i<keywords.length;i++){
+					// 		if(keywords[i].length>=w.length&&keywords[i].substring(0,w.length)===w){
+					// 			line+=keywords[i].substring(w.length+1);
+					// 			break;
+					// 		}
+					// 	}
+					// }
+				}
+				else{
+					for(var i=0;i<ts;i++){ins(' ');}
+				}
 				break;
 			case 13:
 				ins('\n');
 				break;
 			case 16:
 				shift=true;
+				sp=cp;
 				break;
 			case 17:
 				ctrl=true;
@@ -142,15 +178,19 @@ window.onload=function(){
 				ins(shift?'?':'/');
 				break;
 			case 37:
+				if(rtss){rtss=false;sp=-1;}
 				cp=Math.max(cp-1,0);
 				break;
 			case 38:
+				if(rtss){rtss=false;sp=-1;}
 				cp=Math.max(cp-1,0);
 				break;
 			case 39:
+				if(rtss){rtss=false;sp=-1;}
 				cp=Math.min(cp+1,line.length);
 				break;
 			case 40:
+				if(rtss){rtss=false;sp=-1;}
 				cp=Math.min(cp+1,line.length);
 				break;
 			default:
@@ -159,6 +199,12 @@ window.onload=function(){
 				}
 				else if(alt&&e.which===83){
 					save();
+				}
+				else if(alt&&e.which===67&&sp!==-1){
+					copy(line.substring(Math.min(sp,cp),Math.max(sp,cp)));
+				}
+				else if(alt&&e.which===86){
+					paste();
 				}
 				else{
 					if(shift){
@@ -180,6 +226,7 @@ window.onload=function(){
 		switch(e.which){
 			case 16:
 				shift=false;
+				rtss=true;
 				break;
 			case 17:
 				ctrl=false;
@@ -197,16 +244,31 @@ window.onload=function(){
 	setInterval(function(){
 		cc.fillStyle=theme.bg;
 		cc.fillRect(0,0,c.width,c.height);
-		cc.fillStyle=theme.fg;
-		var fs=12;
+		var fs=24;
 		cc.font=fs+'px Anonymous Pro';
 		cc.textBaseline='top';
 		var tw=cc.measureText('a').width;
 		var of=tw*4;
 		var j=0;
+		cc.fillStyle=theme.fg;
 		for(var i=0;i<c.height;i+=fs){
 			cc.fillText(i/fs+1,tw,i);
 		}
+		if(sp!==-1){
+			cc.fillStyle=theme.sb;
+			for(var tcp=Math.min(sp,cp);tcp<Math.max(sp,cp);tcp++){
+				var cx=0,cy=0;
+				for(var i=0;i<tcp;i++){
+					cx++;
+					if(line[i]==='\n'){
+						cy++;
+						cx=0;
+					}
+				}
+				cc.fillRect(cx*tw+of,cy*fs,tw,fs)
+			}
+		}
+		cc.fillStyle=theme.fg;
 		line.split('\n').forEach(function(row){
 			outer:for(var i=0;i<row.length;i++){
 				for(var kw of keywords){
@@ -234,8 +296,15 @@ window.onload=function(){
 		cc.fillRect(cx*tw+of,cy*fs,3,fs)
 	});
 	function ins(c){
-		line=line.substring(0,cp)+c+line.substring(cp);
-		cp++;
+		if(sp!==-1){
+			line=line.substring(0,Math.min(sp,cp))+c+line.substring(Math.max(sp,cp));
+			cp++;
+			sp=-1;
+		}
+		else{
+			line=line.substring(0,cp)+c+line.substring(cp);
+			cp++;	
+		}
 	}
 };
 		</script>
